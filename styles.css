@@ -3,6 +3,15 @@
    Capas: fondo (carrusel) -> sombreado -> paneles -> barra inferior
    =================================================================== */
 :root {
+  /* --- Paleta 60-30-10 (Doc 8) ---
+     60% neutro (fondo/superficie), 30% estructura, 10% acento */
+  --color-fondo: #0b0f19;
+  --color-superficie: #1a2233;
+  --color-acento: #86efac;
+  --color-primario: #7c3aed;
+  --color-texto: #f8fafc;
+  --color-texto-muted: #e2e8f0;
+
   --gold-1: #fff3b0;
   --gold-2: #e8b94a;
   --gold-3: #b8801c;
@@ -1110,3 +1119,72 @@ body.light-mode .toast-hidratacion { background: rgba(255, 255, 255, .95); color
 @media (prefers-reduced-motion: reduce) {
   #btnRefrescar.refrescando i { animation: none; }
 }
+
+/* -------- Mobile-First (Doc 2) — base celular, overrides en landscape/desktop -------- */
+@media (max-width: 640px) {
+  /* Barra superior más compacta */
+  .lobby-top { padding: 6px 10px 0; }
+  /* Sidebar oculto en móvil (está en bottom-bar); distinguir el modo */
+  .side-menu { display: none; }
+  .lobby-icon-btn { width: 66px; }
+  /* Barra inferior más compacta */
+  .bottom-bar { padding: 5px 8px; }
+}
+
+@media (min-width: 821px) and (orientation: landscape) {
+  .side-menu { display: flex; }
+}
+
+/* -------- Mapa de la paleta 60-30-10 (Doc 8) -------- */
+body.dark-mode {
+  --bar: var(--color-superficie);
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
+}
+body.dark-mode .round-btn.install-btn { color: var(--color-acento); }
+body.dark-mode .currency { color: var(--color-primario); }
+
+/* -------- Doc 4: a11y — texto solo para SR, foco visible, alto contraste -------- */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+:focus-visible { outline: 3px solid #38bdf8; outline-offset: 3px; }
+body.alto-contraste {
+  --bar: #000; --bar-line: #facc15; --panel: #000; --panel-line: #facc15;
+  background-color: #000; color: #fff;
+}
+body.alto-contraste .round-btn { background: #000; color: #facc15; border-color: #facc15; }
+body.alto-contraste .bottom-tabs button { color: #facc15; }
+
+/* -------- Doc 7: CLS — reservar espacio en imágenes antes de cargar -------- */
+.lobby-bg .carousel-item img { aspect-ratio: 16 / 9; }
+.avatar-frame img { aspect-ratio: 1; }
+
+/* -------- Supabase Auth: login / registro -------- */
+.login-btn { color: #a5c8ff; }
+.logout-btn { color: #fca5a5; }
+#modalLogin .nav-pills .nav-link.active { background: #2563eb; color: #fff; }
+.login-mensaje {
+  display: none;
+  font-size: 0.85rem;
+  padding: 0.5rem 0.7rem;
+  margin-bottom: 0.75rem;
+  border-radius: 8px;
+}
+.login-mensaje.es-error {
+  display: block;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+}
+.login-mensaje.es-ok {
+  display: block;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.5);
+  color: #86efac;
+}
+.login-estado { opacity: 0.85; }
+body.light-mode .login-mensaje.es-error { color: #b91c1c; }
+body.light-mode .login-mensaje.es-ok { color: #15803d; }

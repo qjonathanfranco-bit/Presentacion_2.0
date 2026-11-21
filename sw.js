@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jona-franco-pwa-v9';
+const CACHE_NAME = 'jona-franco-pwa-v11';
 
 // Archivos esenciales (rutas relativas: funciona en la raíz o en una subcarpeta)
 const CORE_ASSETS = [
@@ -6,6 +6,8 @@ const CORE_ASSETS = [
   './index.html',
   './styles.css',
   './script.js',
+  './supabase-config.js',
+  './supabase-client.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -60,6 +62,12 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.method !== 'GET') return;
+
+  // Supabase: red primero (datos frescos); solo se usa caché si no hay conexión
+  if (req.url.indexOf('.supabase.co') !== -1) {
+    event.respondWith(fetch(req).catch(() => caches.match(req)));
+    return;
+  }
 
   event.respondWith(
     caches.match(req).then(cached => {

@@ -9,6 +9,116 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     /* ===============================================================
+       2.5 DATOS + COMPONENTE .friend-row (Doc 3)
+       Datos separados de la presentación; el componente = crearFriendRow()
+       y el CSS de .friend-row en styles.css
+       =============================================================== */
+    const AMIGOS_DATA = [
+        {
+            href: "https://www.instagram.com/jona_franco0_0",
+            clsAvatar: "fa-ig", icon: "fa-instagram",
+            name: "Instagram", rank: "@jona_franco0_0",
+            statusClass: "online", statusIcon: "fa-circle-check", statusText: "En línea",
+            badgeClass: "add", badgeIcon: "fa-plus"
+        },
+        {
+            href: "https://github.com/qjonathanfranco-bit",
+            clsAvatar: "fa-gh", icon: "fa-github",
+            name: "GitHub", rank: "qjonathanfranco-bit",
+            statusClass: "", statusIcon: "fa-code-branch", statusText: "Repositorios",
+            badgeClass: "", badgeIcon: "fa-arrow-up-right-from-square"
+        },
+        {
+            href: "https://docs.google.com/spreadsheets/d/1EwQnKAoCikzZJOwPzCM-MsV7R7QnSb228aC5VHREQ5w/edit?usp=sharing",
+            clsAvatar: "fa-gs", icon: "fa-file-excel",
+            name: "Google Sheets", rank: "Horario semanal",
+            statusClass: "", statusIcon: "fa-hourglass-half", statusText: "Planilla",
+            badgeClass: "", badgeIcon: "fa-arrow-up-right-from-square"
+        }
+    ];
+
+    function crearFriendRow(amigo) {
+        const statusHtml = `<span class="friend-status${amigo.statusClass ? " " + amigo.statusClass : ""}"><i class="fa-solid ${amigo.statusIcon}"></i> ${amigo.statusText}</span>`;
+        const badgeHtml = `<span class="friend-badge${amigo.badgeClass ? " " + amigo.badgeClass : ""}"><i class="fa-solid ${amigo.badgeIcon}"></i></span>`;
+        const html = `<a class="friend-row" href="${amigo.href}" target="_blank" rel="noopener">
+            <span class="friend-avatar ${amigo.clsAvatar}"><i class="fa-brands ${amigo.icon}"></i></span>
+            <span class="friend-info">
+                <strong>${amigo.name}</strong>
+                <span class="friend-rank"><i class="fa-solid fa-gem"></i> ${amigo.rank}</span>
+                ${statusHtml}
+            </span>
+            ${badgeHtml}
+        </a>`;
+        return window.DOMPurify ? window.DOMPurify.sanitize(html) : html;
+    }
+
+    const amigosLista = document.querySelector('.friends-list');
+    if (amigosLista) {
+        AMIGOS_DATA.forEach(amigo => amigosLista.insertAdjacentHTML('beforeend', crearFriendRow(amigo)));
+    }
+
+    /* ===============================================================
+       4. DOC 4: SIMULADOR DE ALTO CONTRASTE
+       =============================================================== */
+    const btnContraste = document.getElementById('btnSimularContraste');
+    if (btnContraste) {
+        btnContraste.addEventListener('click', () => {
+            const alto = document.body.classList.toggle('alto-contraste');
+            btnContraste.setAttribute('aria-pressed', alto ? 'true' : 'false');
+            if (window.SupabaseDB && SupabaseDB.listo) {
+                const tema = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+                SupabaseDB.guardarPreferencias(tema, alto);
+                SupabaseDB.registrarAuditoria('contraste', { activo: alto });
+            }
+        });
+    }
+
+    /* ===============================================================
+       5. DOC 5: AUDITORÍA SEMÁNTICA (HMR también)
+       =============================================================== */
+    function auditarSemantica() {
+        const sel = s => document.querySelectorAll(s).length;
+        const headings = [...document.querySelectorAll('h1, h2, h3, h4, h5, h6')]
+            .map(h => h.tagName.toLowerCase() + '[' + h.textContent.trim().slice(0, 28) + ']');
+        const imgsSinAlt = [...document.querySelectorAll('img')].filter(i => !i.alt || !i.alt.trim()).length;
+        return {
+            main: sel('main'), header: sel('header'), nav: sel('nav'), section: sel('section'),
+            buttons: sel('button'), links: sel('a[href]'), headings, imgsSinAlt
+        };
+    }
+    const btnAuditar = document.getElementById('btnAuditarSemantica');
+    const reporteSem = document.getElementById('reporteSemantica');
+    if (btnAuditar && reporteSem) {
+        btnAuditar.addEventListener('click', () => {
+            const r = auditarSemantica();
+            reporteSem.textContent =
+                `Semántica: main=${r.main} header=${r.header} nav=${r.nav} secciones=${r.section} | ` +
+                `Headings: ${r.headings.length ? r.headings.join(' ') : 'ninguno'} | imgs sin alt=${r.imgsSinAlt} | botones=${r.buttons}`;
+            if (window.SupabaseDB && SupabaseDB.listo) SupabaseDB.registrarAuditoria('semantica', r);
+        });
+    }
+
+    /* ===============================================================
+       6. DOC 6: SMOKE TEST (DOM en vivo)
+       =============================================================== */
+    function smokeTestDom() {
+        const imgsSinAlt = document.querySelectorAll('img:not([alt]), img[alt=""]').length;
+        const linksVacios = document.querySelectorAll('a[href=""], a:not([href])').length;
+        const botones = document.querySelectorAll('button').length;
+        const friends = document.querySelectorAll('.friend-row').length;
+        const salida = document.getElementById('salidaSmoke');
+        if (salida) salida.textContent =
+            `Smoke Test: amigos=${friends} | img sin alt=${imgsSinAlt} | links vacíos=${linksVacios} | botones=${botones}`;
+        if (window.SupabaseDB && SupabaseDB.listo) {
+            SupabaseDB.registrarAuditoria('smoke', {
+                amigos: friends, imgsSinAlt: imgsSinAlt, linksVacios: linksVacios, botones: botones
+            });
+        }
+    }
+    const btnSmoke = document.getElementById('btnSmokeTest');
+    if (btnSmoke) btnSmoke.addEventListener('click', smokeTestDom);
+
+    /* ===============================================================
        1. MODO OSCURO / MODO CLARO
        =============================================================== */
     const themeBtn = document.getElementById('theme-toggle');
@@ -24,11 +134,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try { aplicarTema(localStorage.getItem('theme-preference') === 'light'); } catch (e) { aplicarTema(false); }
 
+    // Si hay sesión en Supabase, el tema guardado en la nube manda
+    if (window.SupabaseDB && SupabaseDB.listo) {
+        SupabaseDB.cargarPreferencias().then(pref => {
+            if (!pref) return;
+            if (pref.tema) {
+                aplicarTema(pref.tema === 'light');
+                try { localStorage.setItem('theme-preference', pref.tema); } catch (e) {}
+            }
+            if (pref.contraste_alto) {
+                document.body.classList.add('alto-contraste');
+                const btnC = document.getElementById('btnSimularContraste');
+                if (btnC) btnC.setAttribute('aria-pressed', 'true');
+            }
+        }).catch(() => {});
+    }
+
     if (themeBtn) {
         themeBtn.addEventListener('click', () => {
             const claro = !document.body.classList.contains('light-mode');
             aplicarTema(claro);
             try { localStorage.setItem('theme-preference', claro ? 'light' : 'dark'); } catch (e) {}
+            if (window.SupabaseDB && SupabaseDB.listo) {
+                SupabaseDB.guardarPreferencias(
+                    claro ? 'light' : 'dark',
+                    document.body.classList.contains('alto-contraste')
+                );
+            }
         });
     }
 
@@ -723,9 +855,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Todo válido: simulamos el envío (aquí iría el fetch a tu servidor)
-            const nombreIngresado = document.getElementById('campo-nombre').value.trim();
-            const motivoIngresado = document.getElementById('campo-motivo').value;
+            // Todo válido: guardamos en Supabase (o simulamos si no está configurado)
+            const valor = id => (document.getElementById(id) || {}).value || '';
+            const nombreIngresado = valor('campo-nombre').trim();
+            const motivoIngresado = valor('campo-motivo');
+            const datosContacto = {
+                nombre: nombreIngresado,
+                apellidos: valor('campo-apellidos').trim(),
+                correo: valor('campo-correo').trim(),
+                telefono: valor('campo-telefono').trim(),
+                ciudad: valor('campo-ciudad').trim(),
+                motivo: motivoIngresado,
+                prioridad: valor('campo-prioridad'),
+                asunto: valor('campo-asunto').trim(),
+                mensaje: valor('campo-mensaje').trim()
+            };
 
             enviando = true;
             if (btnEnviar) {
@@ -733,8 +877,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnEnviar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando...';
             }
 
-            setTimeout(() => {
-                contactForm.reset(); // limpia campos y estados (también vacía el contenedor)
+            function restaurarBoton() {
+                enviando = false;
+                if (btnEnviar) {
+                    btnEnviar.disabled = false;
+                    btnEnviar.innerHTML = '<i class="fa-solid fa-paper-plane me-2"></i>Enviar Mensaje';
+                }
+            }
+
+            function exitoEnvio(nota) {
+                contactForm.reset(); // limpia campos y estados
                 formAlertBox.innerHTML = `
                     <div class="alert-box-success p-4 rounded-4 mb-3 text-center">
                         <div class="text-success fw-bold fs-4 mb-2">
@@ -745,14 +897,35 @@ document.addEventListener('DOMContentLoaded', () => {
                             Muchas gracias <strong>${escaparHTML(nombreIngresado)}</strong> por ponerte en contacto respecto a: <em>${escaparHTML(motivoIngresado)}</em>.
                         </p>
                         <p class="text-info small mb-0">He recibido tus datos correctamente y te responderé lo más pronto posible.</p>
+                        ${nota ? `<p class="text-muted small mb-0 mt-1">${escaparHTML(nota)}</p>` : ''}
                     </div>`;
-                enviando = false;
-                if (btnEnviar) {
-                    btnEnviar.disabled = false;
-                    btnEnviar.innerHTML = '<i class="fa-solid fa-paper-plane me-2"></i>Enviar Mensaje';
-                }
+                restaurarBoton();
                 formAlertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }, 900);
+            }
+
+            function errorEnvio(mensaje) {
+                formAlertBox.innerHTML = `
+                    <div class="alert-box-error p-3 rounded-4 mb-3">
+                        <div class="d-flex align-items-center gap-2 text-danger fw-bold">
+                            <i class="fa-solid fa-triangle-exclamation fs-4"></i>
+                            <span>No se pudo guardar el mensaje</span>
+                        </div>
+                        <p class="small mb-0 mt-2">${escaparHTML(mensaje)}</p>
+                    </div>`;
+                restaurarBoton();
+                formAlertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            if (window.SupabaseDB && SupabaseDB.listo) {
+                SupabaseDB.guardarContacto(datosContacto)
+                    .then(resultado => {
+                        if (resultado && resultado.error) return errorEnvio(resultado.error.message);
+                        exitoEnvio('Guardado en Supabase ✓');
+                    })
+                    .catch(err => errorEnvio(err.message));
+            } else {
+                setTimeout(() => exitoEnvio('Modo demostración (Supabase sin configurar)'), 900);
+            }
         });
 
         actualizarContador();
@@ -794,7 +967,173 @@ document.addEventListener('DOMContentLoaded', () => {
         if (installBtn) installBtn.style.display = 'none';
     });
 
-    
+
+    /* ===============================================================
+       9. SUPABASE: LOGIN (AUTH), CATÁLOGO REMOTO Y PREFERENCIAS
+       Si no hay credenciales, todo sigue funcionando en modo local.
+       =============================================================== */
+    const DB = window.SupabaseDB;
+
+    function mensajeLogin(texto, tipo) {
+        const caja = document.getElementById('loginMensaje');
+        if (!caja) return;
+        caja.textContent = texto || '';
+        caja.className = 'login-mensaje' + (texto ? (tipo === 'error' ? ' es-error' : ' es-ok') : '');
+    }
+
+    function errorAuth(error) {
+        const m = (error && error.message) || 'Error desconocido';
+        if (/invalid login credentials/i.test(m)) return 'Correo o contraseña incorrectos.';
+        if (/email not confirmed/i.test(m)) return 'Confirma tu correo antes de entrar (revisa tu bandeja).';
+        if (/user already registered/i.test(m)) return 'Ese correo ya está registrado. Inicia sesión.';
+        if (/password should be at least/i.test(m)) return 'La contraseña debe tener al menos 6 caracteres.';
+        return m;
+    }
+
+    function actualizarUIUsuario(session) {
+        const correo = session && session.user ? session.user.email : '';
+        const btnLogin = document.getElementById('btnLogin');
+        const btnLogout = document.getElementById('btnLogout');
+        const icono = document.getElementById('login-icon');
+        const estado = document.getElementById('estadoUsuario');
+        const info = document.getElementById('login-estado');
+
+        if (btnLogin) btnLogin.style.display = correo ? 'none' : 'inline-flex';
+        if (btnLogout) btnLogout.style.display = correo ? 'inline-flex' : 'none';
+        if (icono) icono.className = correo ? 'fa-solid fa-user-check' : 'fa-solid fa-right-to-bracket';
+        if (estado) estado.textContent = correo ? 'Sesión iniciada: ' + correo : 'Sin sesión iniciada';
+        if (info) {
+            info.textContent = correo
+                ? 'Conectado como ' + correo
+                : (DB && DB.listo
+                    ? 'Inicia sesión para sincronizar tus preferencias.'
+                    : 'Modo demostración: configura supabase-config.js para activar login y base de datos.');
+        }
+
+        // Rellenar el formulario de contacto con los datos del perfil
+        if (correo) {
+            const meta = (session.user.user_metadata) || {};
+            const nombre = document.getElementById('campo-nombre');
+            const apellidos = document.getElementById('campo-apellidos');
+            const correoInput = document.getElementById('campo-correo');
+            if (nombre && !nombre.value && meta.nombre) nombre.value = meta.nombre;
+            if (apellidos && !apellidos.value && meta.apellidos) apellidos.value = meta.apellidos;
+            if (correoInput && !correoInput.value) correoInput.value = correo;
+        }
+    }
+
+    if (DB && DB.listo) {
+        DB.sesion().then(actualizarUIUsuario).catch(() => actualizarUIUsuario(null));
+        DB.onAuthChange(actualizarUIUsuario);
+
+        const formLogin = document.getElementById('form-login');
+        if (formLogin) {
+            formLogin.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value.trim();
+                const password = document.getElementById('login-password').value;
+                if (!email || !password) return mensajeLogin('Completa el correo y la contraseña.', 'error');
+                const boton = document.getElementById('btn-login-submit');
+                boton.disabled = true;
+                mensajeLogin('Iniciando sesión…');
+                const { error } = await DB.iniciarSesion(email, password);
+                boton.disabled = false;
+                if (error) return mensajeLogin(errorAuth(error), 'error');
+                mensajeLogin('¡Bienvenido! Redirigiendo…');
+                setTimeout(() => {
+                    const modal = document.getElementById('modalLogin');
+                    if (modal && typeof bootstrap !== 'undefined') {
+                        bootstrap.Modal.getOrCreateInstance(modal).hide();
+                    }
+                }, 700);
+            });
+        }
+
+        const formRegistro = document.getElementById('form-registro');
+        if (formRegistro) {
+            formRegistro.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nombre = document.getElementById('registro-nombre').value.trim();
+                const apellidos = document.getElementById('registro-apellidos').value.trim();
+                const email = document.getElementById('registro-email').value.trim();
+                const password = document.getElementById('registro-password').value;
+                if (!nombre || !email || !password) {
+                    return mensajeLogin('Completa nombre, correo y contraseña.', 'error');
+                }
+                const boton = document.getElementById('btn-registro-submit');
+                boton.disabled = true;
+                mensajeLogin('Creando cuenta…');
+                const { data, error } = await DB.crearCuenta(email, password, nombre, apellidos);
+                boton.disabled = false;
+                if (error) return mensajeLogin(errorAuth(error), 'error');
+                mensajeLogin(data && data.session
+                    ? '¡Cuenta creada e iniciada!'
+                    : 'Cuenta creada. Revisa tu correo para confirmarla.', 'ok');
+            });
+        }
+
+        const botonSalir = document.getElementById('btnLogout');
+        if (botonSalir) {
+            botonSalir.addEventListener('click', async () => {
+                await DB.cerrarSesion();
+                actualizarUIUsuario(null);
+                mensajeLogin('Sesión cerrada.');
+            });
+        }
+    } else {
+        actualizarUIUsuario(null);
+    }
+
+    /* Catálogo desde Supabase: se usa si hay datos; si falla, queda el local */
+    async function sincronizarCatalogo() {
+        if (!DB || !DB.listo) return;
+        try {
+            const datos = await DB.cargarCatalogo();
+            if (!datos) return;
+
+            if (datos.artistas.length && datos.canciones.length) {
+                const remoto = {};
+                datos.artistas.forEach(a => {
+                    remoto[a.clave] = {
+                        nombre: a.nombre,
+                        genero: a.genero_texto,
+                        foto: a.foto,
+                        descripcion: a.descripcion,
+                        top10: datos.canciones
+                            .filter(c => c.artista_id === a.id)
+                            .sort((x, y) => x.rank - y.rank)
+                            .map(c => ({ rank: c.rank, titulo: c.titulo, album: c.album, tipo: c.tipo }))
+                    };
+                });
+                Object.keys(catalogoMusica).forEach(k => delete catalogoMusica[k]);
+                Object.assign(catalogoMusica, remoto);
+            }
+
+            if (datos.juegos.length) {
+                datos.juegos.forEach(j => {
+                    const tarjeta = Array.prototype.find.call(document.querySelectorAll('.game-card'), card => {
+                        const img = card.querySelector('img');
+                        if (!img) return false;
+                        const archivo = (img.getAttribute('src') || '').split('/').pop();
+                        return archivo.replace(/\.[^.]+$/, '').toLowerCase() === j.clave;
+                    });
+                    if (!tarjeta) return;
+                    tarjeta.dataset.categoria = j.categoria;
+                    const img = tarjeta.querySelector('img');
+                    if (img) { img.src = j.imagen; img.alt = j.nombre; }
+                    const titulo = tarjeta.querySelector('h6');
+                    if (titulo) titulo.textContent = j.nombre;
+                    const parrafo = tarjeta.querySelector('p');
+                    if (parrafo) parrafo.textContent = j.descripcion;
+                });
+            }
+            console.info('[Supabase] Catálogo sincronizado desde la base de datos.');
+        } catch (error) {
+            console.info('[Supabase] Se conserva el catálogo local:', error.message);
+        }
+    }
+    sincronizarCatalogo();
+
 })
 $(document).ready(function() {
 

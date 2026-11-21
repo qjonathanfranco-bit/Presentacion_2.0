@@ -24,12 +24,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
   <!-- Hoja de Estilos Personalizada -->
   <link rel="stylesheet" href="styles.css">
+  <link rel="preload" as="image" href="img/hero-1.jpeg" crossorigin>
+  <!-- DOMPurify para sanitizar HTML dinámico (Doc 7) -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
 
 </head>
 <body class="dark-mode">
 
   <!-- ==================== LOBBY ESTILO VIDEOJUEGO ==================== -->
-  <div class="lobby">
+  <main class="lobby" aria-label="Lobby"><h1 class="sr-only">Jona Franco</h1>
 
     <!-- FONDO: escenario con las fotos (carrusel a pantalla completa) -->
     <div id="heroCarousel" class="carousel slide carousel-fade lobby-bg" data-bs-ride="carousel" data-bs-interval="6000" data-bs-pause="false">
@@ -82,12 +85,34 @@
       </div>
 
       <div class="top-right" id="contenedorMenu" data-hidratado="false">
-        <button data-hidratado="false" id="btnRefrescar" class="round-btn" type="button" aria-label="Cargando..." title="Cargando...">
+          <!-- ---------- Doc 4: admin de alto contraste ---------- -->
+          <button data-hidratado="false" id="btnSimularContraste" class="round-btn contrast-btn" type="button" aria-label="Simular alto contraste" title="Simular alto contraste" aria-pressed="false">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+          <!-- ---------- Doc 5: auditoría semántica + HMR ---------- -->
+          <button data-hidratado="false" id="btnAuditarSemantica" type="button" aria-label="Auditar semántica" title="Auditar semántica">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+          <p id="reporteSemantica" class="reporte-semantica sr-only" aria-live="polite"></p>
+          <!-- ---------- Doc 6: Smoke Test ---------- -->
+          <button data-hidratado="false" id="btnSmokeTest" type="button" aria-label="Ejecutar Smoke Test DOM" title="Ejecutar Smoke Test DOM">
+            <i class="fa-solid fa-vial"></i>
+          </button>
+          <span id="salidaSmoke" class="salida-smoke sr-only" aria-live="polite"></span>
+          <button data-hidratado="false" id="btnRefrescar" class="round-btn" type="button" aria-label="Cargando..." title="Cargando...">
           <i class="fa-solid fa-rotate-right"></i>
         </button>
         <button data-hidratado="false" id="pwa-install-btn" class="round-btn install-btn" type="button" style="display:none;" aria-label="Instalar App" title="Instalar App">
           <i class="fa-solid fa-download"></i>
         </button>
+        <!-- Supabase Auth -->
+        <button data-hidratado="false" id="btnLogin" class="round-btn login-btn" type="button" data-bs-toggle="modal" data-bs-target="#modalLogin" aria-label="Iniciar sesión" title="Iniciar sesión">
+          <i class="fa-solid fa-right-to-bracket" id="login-icon"></i>
+        </button>
+        <button data-hidratado="false" id="btnLogout" class="round-btn logout-btn" type="button" aria-label="Cerrar sesión" title="Cerrar sesión" style="display:none;">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+        <span id="estadoUsuario" class="sr-only" role="status" aria-live="polite"></span>
         <button data-hidratado="false" id="theme-toggle" class="round-btn" type="button" aria-label="Cambiar tema" title="Cambiar tema">
           <i class="fa-solid fa-sun" id="theme-icon"></i>
         </button>
@@ -118,35 +143,7 @@
       <button data-hidratado="false" class="panel-toggle" id="panel-toggle" type="button" aria-label="Mostrar u ocultar redes" aria-expanded="true">
         <i class="fa-solid fa-chevron-right"></i>
       </button>
-      <div class="friends-list">
-        <a class="friend-row" href="https://www.instagram.com/jona_franco0_0" target="_blank" rel="noopener">
-          <span class="friend-avatar fa-ig"><i class="fa-brands fa-instagram"></i></span>
-          <span class="friend-info">
-            <strong>Instagram</strong>
-            <span class="friend-rank"><i class="fa-solid fa-gem"></i> @jona_franco0_0</span>
-            <span class="friend-status online"><i class="fa-solid fa-circle-check"></i> En línea</span>
-          </span>
-          <span class="friend-badge add"><i class="fa-solid fa-plus"></i></span>
-        </a>
-        <a class="friend-row" href="https://github.com/qjonathanfranco-bit" target="_blank" rel="noopener">
-          <span class="friend-avatar fa-gh"><i class="fa-brands fa-github"></i></span>
-          <span class="friend-info">
-            <strong>GitHub</strong>
-            <span class="friend-rank"><i class="fa-solid fa-gem"></i> qjonathanfranco-bit</span>
-            <span class="friend-status"><i class="fa-solid fa-code-branch"></i> Repositorios</span>
-          </span>
-          <span class="friend-badge"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
-        </a>
-        <a class="friend-row" href="https://docs.google.com/spreadsheets/d/1EwQnKAoCikzZJOwPzCM-MsV7R7QnSb228aC5VHREQ5w/edit?usp=sharing" target="_blank" rel="noopener">
-          <span class="friend-avatar fa-gs"><i class="fa-solid fa-file-excel"></i></span>
-          <span class="friend-info">
-            <strong>Google Sheets</strong>
-            <span class="friend-rank"><i class="fa-solid fa-gem"></i> Horario semanal</span>
-            <span class="friend-status"><i class="fa-solid fa-hourglass-half"></i> Planilla</span>
-          </span>
-          <span class="friend-badge"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
-        </a>
-      </div>
+      <div class="friends-list"><!-- Amigos: Datos (AMIGOS_DATA) + componente crearFriendRow() — ver script.js --></div>
       <div class="friends-footer">
         <button data-hidratado="false" type="button" data-bs-toggle="modal" data-bs-target="#modalContacto" aria-label="Contacto"><i class="fa-solid fa-envelope"></i></button>
         <button data-hidratado="false" type="button" data-bs-toggle="modal" data-bs-target="#modalMusica" aria-label="Música"><i class="fa-solid fa-music"></i></button>
@@ -188,7 +185,7 @@
         </button>
       </div>
     </footer>
-  </div>
+  </main>
 
   <!-- MENÚ HAMBURGUESA (OFFCANVAS DRAWER) -->
   <div class="offcanvas offcanvas-start theme-drawer" tabindex="-1" id="offcanvasNav">
@@ -721,11 +718,86 @@
     </div>
   </div>
 
+  <!-- ==================== LOGIN / REGISTRO (SUPABASE AUTH) ==================== -->
+  <div class="modal fade" id="modalLogin" tabindex="-1" aria-hidden="true" aria-labelledby="tituloLogin">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="tituloLogin"><i class="fa-solid fa-right-to-bracket me-2"></i>Acceder</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <ul class="nav nav-pills mb-3" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="tab-login" data-bs-toggle="pill" data-bs-target="#pane-login" type="button" role="tab" aria-selected="true">Iniciar sesión</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-registro" data-bs-toggle="pill" data-bs-target="#pane-registro" type="button" role="tab" aria-selected="false">Crear cuenta</button>
+            </li>
+          </ul>
+
+          <div id="loginMensaje" class="login-mensaje" role="alert" aria-live="polite"></div>
+
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="pane-login" role="tabpanel" aria-labelledby="tab-login">
+              <form id="form-login" novalidate autocomplete="on">
+                <div class="mb-3">
+                  <label for="login-email" class="form-label">Correo electrónico *</label>
+                  <input type="email" class="form-field" id="login-email" autocomplete="email" placeholder="usuario@correo.com" required>
+                </div>
+                <div class="mb-3">
+                  <label for="login-password" class="form-label">Contraseña *</label>
+                  <input type="password" class="form-field" id="login-password" autocomplete="current-password" placeholder="Mínimo 6 caracteres" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary w-100" id="btn-login-submit">
+                  <i class="fa-solid fa-right-to-bracket me-2"></i>Entrar
+                </button>
+              </form>
+            </div>
+
+            <div class="tab-pane fade" id="pane-registro" role="tabpanel" aria-labelledby="tab-registro">
+              <form id="form-registro" novalidate autocomplete="on">
+                <div class="row g-2">
+                  <div class="col-6">
+                    <label for="registro-nombre" class="form-label">Nombre *</label>
+                    <input type="text" class="form-field" id="registro-nombre" autocomplete="given-name" required>
+                  </div>
+                  <div class="col-6">
+                    <label for="registro-apellidos" class="form-label">Apellidos</label>
+                    <input type="text" class="form-field" id="registro-apellidos" autocomplete="family-name">
+                  </div>
+                </div>
+                <div class="mb-3 mt-3">
+                  <label for="registro-email" class="form-label">Correo electrónico *</label>
+                  <input type="email" class="form-field" id="registro-email" autocomplete="email" required>
+                </div>
+                <div class="mb-3">
+                  <label for="registro-password" class="form-label">Contraseña *</label>
+                  <input type="password" class="form-field" id="registro-password" autocomplete="new-password" placeholder="Mínimo 6 caracteres" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-success w-100" id="btn-registro-submit">
+                  <i class="fa-solid fa-user-plus me-2"></i>Crear cuenta
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <p class="login-estado small mt-3 mb-0" id="login-estado"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Bootstrap 5 JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <!-- jQuery (debe cargarse antes de script.js) -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- SUPABASE: SDK (UMD) + configuración + capa de datos -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
 
   <!-- ARCHIVO SCRIPT.JS EXTERNO CONECTADO AL FORMULARIO Y MODOS DE TEMA -->
   <script src="script.js"></script>
